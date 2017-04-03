@@ -1,0 +1,10 @@
+{
+  "SlackSettings": {
+    "BotAPIKey": "xoxb-111111111111-xxxxxxxxxxxxxxxxxxxxxxxx",
+    "AppAPIKey": "xoxp-1111111111-2222222222-333333333333-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  },
+  "WebServerSettings": {
+    "Port": 8000
+  },
+  "DebugEnabled": true
+}
