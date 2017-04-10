@@ -6,5 +6,9 @@
   "WebServerSettings": {
     "Port": 8000
   },
-  "DebugEnabled": true
+  "DebugEnabled": true,
+  "DBSettings": {
+    "Driver": "postgres",
+    "Connection": "host=localhost user=postgres dbname=slack_visitor"
+  }
 }
