@@ -1,20 +1,13 @@
 package model
 
 import (
-	"github.com/jinzhu/gorm"
+	"time"
 )
 
-type Chat struct {
-	gorm.Model
-	UID       string `sql:"index"`
-	VisitorID uint   `sql:"index"`
-}
-
-type Message struct {
-	gorm.Model
-	Text     string
-	Chat     Chat `gorm:"ForeignKey:ChatID"`
-	ChatID   uint
-	UserType string
-	UserID   string
+type ChatRequest struct {
+	ID        string `gorm:"primary_key;type:uuid;default:gen_random_uuid()"`
+	State     string `gorm:"primary_key;type:varchar(100)"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt *time.Time
 }

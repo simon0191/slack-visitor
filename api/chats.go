@@ -1,9 +1,9 @@
 package api
 
 import (
-	"encoding/json"
 	"github.com/gorilla/mux"
 	"net/http"
+	"time"
 )
 
 func (s *Server) InitChatRoutes(r *mux.Router) {
@@ -15,18 +15,20 @@ type CreateChatRequest struct {
 	Subject     string `json:"subject"`
 }
 
+type CreateChatResponse struct {
+	ID        string    `json:"id"`
+	State     string    `json:"state"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
 func (s *Server) createChat(w http.ResponseWriter, r *http.Request) {
 	var payload CreateChatRequest
-	defer r.Body.Close()
-	decoder := json.NewDecoder(r.Body)
-
-	if err := decoder.Decode(&payload); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+	if ok := s.readJSON(w, r, &payload); !ok {
 		return
 	}
+	chatRequest := s.app.SendChatRequest(payload.VisitorName, payload.Subject)
+	resp := CreateChatResponse{State: chatRequest.State, ID: chatRequest.ID, CreatedAt: chatRequest.CreatedAt, UpdatedAt: chatRequest.UpdatedAt}
 
-	s.app.SendChatRequest(payload.VisitorName, payload.Subject)
-	//TODO: send message with buttons (accept)/(decline) to Slack
-	//s.app.SendChatRequest()
-	w.Write([]byte("todo bien mi perro"))
+	s.writeJSON(w, resp)
 }

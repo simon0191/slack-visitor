@@ -1,7 +1,9 @@
 {
+  "VisitorChannelID": "C01230ABC",
   "SlackSettings": {
     "BotAPIKey": "xoxb-111111111111-xxxxxxxxxxxxxxxxxxxxxxxx",
-    "AppAPIKey": "xoxp-1111111111-2222222222-333333333333-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    "AppAPIKey": "xoxp-1111111111-2222222222-333333333333-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "VerificationToken": "XYXYXYXYXYXYXYXYXYXYXYXY"
   },
   "WebServerSettings": {
     "Port": 8000

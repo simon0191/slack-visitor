@@ -4,6 +4,7 @@ import (
 	"github.com/nlopes/slack"
 	"github.com/simon0191/slack-visitor/model"
 
+	"github.com/jinzhu/gorm"
 	"log"
 	"os"
 )
@@ -18,6 +19,7 @@ type App struct {
 	SlackApp *slack.Client
 	SlackBot *slack.Client
 	Logger   *log.Logger
+	db       *gorm.DB
 
 	bridges          map[string]*Bridge
 	registerClient   chan *Bridge
@@ -39,6 +41,15 @@ func New(config *model.Config) *App {
 		unregisterClient: make(chan *Bridge),
 		toSlack:          make(chan *ClientMessage),
 	}
+
+	db, err := gorm.Open(config.DBSettings.Driver, config.DBSettings.Connection)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err = db.DB().Ping(); err != nil {
+		log.Fatal(err)
+	}
+	app.db = db
 
 	slack.SetLogger(app.Logger)
 	app.SlackApp.SetDebug(config.DebugEnabled)
