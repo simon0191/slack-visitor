@@ -1,5 +1,5 @@
-hash: b250f6f5af13dd5834fd2d47b95f6731b4b28ff60114492aed2d7ad1e5e545f8
-updated: 2017-04-09T23:19:09.272479791-05:00
+hash: 4144560e0ff440bc2bc145ac93ccce304199bd12ed957867552fe00ba443bf10
+updated: 2017-04-16T22:06:43.720008113-05:00
 imports:
 - name: github.com/gorilla/context
   version: 08b5f424b9271eedf6f9f0ce86cb9396ed337a42
@@ -7,6 +7,8 @@ imports:
   version: 392c28fe23e1c45ddba891b0320b3b5df220beea
 - name: github.com/gorilla/websocket
   version: 3ab3a8b8831546bd18fd182c20687ca853b2bb13
+- name: github.com/inconshreveable/mousetrap
+  version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
 - name: github.com/jinzhu/gorm
   version: 5174cc5c242a728b435ea2be8a2f7f998e15429b
   subpackages:
@@ -19,7 +21,11 @@ imports:
   - hstore
   - oid
 - name: github.com/nlopes/slack
-  version: 3e8aa5655be613e1d4ce0b740993bb734a2b0f7b
+  version: 5bdec13b7f814e15f59a846bcbc2f64cd71f7888
+- name: github.com/spf13/cobra
+  version: 5deb57bbca49eb370538fc295ba4b2988f9f5e09
+- name: github.com/spf13/pflag
+  version: e453343e6260b4a3a89f1f0e10a2fbb07f8d9750
 - name: golang.org/x/net
   version: d1e1b351919c6738fdeb9893d5c998b161464f0c
   subpackages:

@@ -1,4 +1,4 @@
-package main
+package cmd
 
 import (
 	"log"
@@ -6,11 +6,32 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/simon0191/slack-visitor/utils"
+	"github.com/spf13/cobra"
 	"gopkg.in/gormigrate.v1"
 )
 
-func main() {
-	config, err := utils.LoadConfig("./config/config.json")
+func init() {
+	dbCmd.AddCommand(
+		dbMigrateCmd,
+	)
+}
+
+var dbCmd = &cobra.Command{
+	Use: "db",
+}
+
+var dbMigrateCmd = &cobra.Command{
+	Use: "migrate",
+	Run: dbMigrateCmdFunc,
+}
+
+func dbMigrateCmdFunc(cmd *cobra.Command, args []string) {
+	configPath, err := cmd.Flags().GetString("config")
+	if err != nil {
+		panic(err)
+	}
+
+	config, err := utils.LoadConfig(configPath)
 	if err != nil {
 		log.Fatal(err)
 	}

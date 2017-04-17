@@ -5,10 +5,11 @@ import:
 - package: github.com/gorilla/websocket
   version: ^1.1.0
 - package: github.com/nlopes/slack
-  version: ^0.0.1
+  version: 5bdec13b7f814e15f59a846bcbc2f64cd71f7888
 - package: github.com/jinzhu/gorm
   version: ^1.0.0
 - package: github.com/jinzhu/inflection
 - package: gopkg.in/gormigrate.v1
   version: ^1.1.3
 - package: github.com/lib/pq
+- package: github.com/spf13/cobra

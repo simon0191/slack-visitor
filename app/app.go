@@ -25,7 +25,6 @@ type App struct {
 	toSlack          chan *ClientMessage
 	botInfo          *slack.Info
 	slackRTM         *slack.RTM
-	webServer        *WebServer
 }
 
 func New(config *model.Config) *App {
@@ -41,8 +40,6 @@ func New(config *model.Config) *App {
 		toSlack:          make(chan *ClientMessage),
 	}
 
-	app.webServer = NewWebServer(app)
-
 	slack.SetLogger(app.Logger)
 	app.SlackApp.SetDebug(config.DebugEnabled)
 	app.SlackBot.SetDebug(config.DebugEnabled)
@@ -50,13 +47,7 @@ func New(config *model.Config) *App {
 	return app
 }
 
-func (app *App) Init() {
-	go app.listenToBridges()
-	go app.readPump()
-	app.webServer.run()
-}
-
-func (app *App) listenToBridges() {
+func (app *App) ListenToBridges() {
 	for {
 		select {
 		case bridge := <-app.registerClient:
@@ -84,7 +75,7 @@ func (app *App) listenToBridges() {
 	}
 }
 
-func (app *App) readPump() {
+func (app *App) ReadPump() {
 	app.slackRTM = app.SlackBot.NewRTM()
 	go app.slackRTM.ManageConnection()
 
