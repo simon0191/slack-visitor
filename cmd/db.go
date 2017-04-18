@@ -48,21 +48,21 @@ var migrations = []*gormigrate.Migration{
 	{
 		ID: "201704161038",
 		Migrate: func(tx *gorm.DB) error {
-			type ChatRequestState struct {
+			type ChatState struct {
 				ID string `gorm:"primary_key;type:varchar(100)"`
 			}
-			if err := tx.AutoMigrate(&ChatRequestState{}).Error; err != nil {
+			if err := tx.AutoMigrate(&ChatState{}).Error; err != nil {
 				return err
 			}
 			for _, state := range []string{"pending", "accepted", "declined"} {
-				if err := tx.Create(&ChatRequestState{ID: state}).Error; err != nil {
+				if err := tx.Create(&ChatState{ID: state}).Error; err != nil {
 					return err
 				}
 			}
 			return nil
 		},
 		Rollback: func(tx *gorm.DB) error {
-			return tx.DropTable("chat_request_states").Error
+			return tx.DropTable("chat_states").Error
 		},
 	},
 	// create chat requests table
@@ -70,22 +70,25 @@ var migrations = []*gormigrate.Migration{
 		ID: "201704161040",
 		Migrate: func(tx *gorm.DB) error {
 
-			type ChatRequest struct {
-				ID        string `gorm:"primary_key;type:uuid;default:gen_random_uuid()"`
-				State     string `gorm:"primary_key;type:varchar(100)"`
+			type Chat struct {
+				ID          string `gorm:"primary_key;type:uuid;default:gen_random_uuid()"`
+				VisitorName string `gorm:"type:varchar(100)"`
+				Subject     string `gorm:"type:text"`
+				State       string `gorm:"primary_key;type:varchar(100)"`
+
 				CreatedAt time.Time
 				UpdatedAt time.Time
 				DeletedAt *time.Time
 			}
 
-			if err := tx.AutoMigrate(&ChatRequest{}).Error; err != nil {
+			if err := tx.AutoMigrate(&Chat{}).Error; err != nil {
 				return err
 			}
 
-			return tx.Model(ChatRequest{}).AddForeignKey("state", "chat_request_states (id)", "RESTRICT", "RESTRICT").Error
+			return tx.Model(Chat{}).AddForeignKey("state", "chat_states (id)", "RESTRICT", "RESTRICT").Error
 		},
 		Rollback: func(tx *gorm.DB) error {
-			return tx.DropTable("chat_requests").Error
+			return tx.DropTable("chats").Error
 		},
 	},
 }

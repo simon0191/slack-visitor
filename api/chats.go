@@ -3,32 +3,34 @@ package api
 import (
 	"github.com/gorilla/mux"
 	"net/http"
-	"time"
 )
 
 func (s *Server) InitChatRoutes(r *mux.Router) {
 	r.HandleFunc("/api/chats", s.createChat).Methods("POST")
+	r.HandleFunc("/api/chats/{id}", s.getChat).Methods("GET")
 }
 
 type CreateChatRequest struct {
-	VisitorName string `json:"visitorName"`
+	VisitorName string `json:"visitor_name"`
 	Subject     string `json:"subject"`
-}
-
-type CreateChatResponse struct {
-	ID        string    `json:"id"`
-	State     string    `json:"state"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
 }
 
 func (s *Server) createChat(w http.ResponseWriter, r *http.Request) {
 	var payload CreateChatRequest
 	if ok := s.readJSON(w, r, &payload); !ok {
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	chatRequest := s.app.SendChatRequest(payload.VisitorName, payload.Subject)
-	resp := CreateChatResponse{State: chatRequest.State, ID: chatRequest.ID, CreatedAt: chatRequest.CreatedAt, UpdatedAt: chatRequest.UpdatedAt}
+	chat := s.app.SendChatRequest(payload.VisitorName, payload.Subject)
+	s.writeJSON(w, chat)
+}
 
-	s.writeJSON(w, resp)
+func (s *Server) getChat(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	chat, err := s.app.GetChatByID(vars["id"])
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	s.writeJSON(w, chat)
 }

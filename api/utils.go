@@ -8,13 +8,9 @@ import (
 func (s *Server) readJSON(w http.ResponseWriter, r *http.Request, payload interface{}) bool {
 	defer r.Body.Close()
 	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&payload)
 
-	if err := decoder.Decode(&payload); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return false
-	}
-
-	return true
+	return err == nil
 }
 
 func (s *Server) writeJSON(w http.ResponseWriter, payload interface{}) {
