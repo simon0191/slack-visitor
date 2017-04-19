@@ -5,7 +5,7 @@ import:
 - package: github.com/gorilla/websocket
   version: ^1.1.0
 - package: github.com/nlopes/slack
-  version: 5bdec13b7f814e15f59a846bcbc2f64cd71f7888
+  version: 8c25eff4976762d1a090aeae6f49174a37a1d710
 - package: github.com/jinzhu/gorm
   version: ^1.0.0
 - package: github.com/jinzhu/inflection

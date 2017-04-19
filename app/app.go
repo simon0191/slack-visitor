@@ -42,20 +42,16 @@ func New(config *model.Config) *App {
 		toSlack:          make(chan *ClientMessage),
 	}
 
-	db, err := gorm.Open(config.DBSettings.Driver, config.DBSettings.Connection)
-	if err != nil {
-		log.Fatal(err)
-	}
-	if err = db.DB().Ping(); err != nil {
-		log.Fatal(err)
-	}
-	app.db = db
-
 	slack.SetLogger(app.Logger)
 	app.SlackApp.SetDebug(config.DebugEnabled)
 	app.SlackBot.SetDebug(config.DebugEnabled)
 
 	return app
+}
+
+func (app *App) Init() {
+	app.InitDB()
+	go app.ReadPump()
 }
 
 func (app *App) ListenToBridges() {
@@ -97,16 +93,18 @@ func (app *App) ReadPump() {
 			// Ignore hello
 
 		case *slack.ConnectedEvent:
-
+			//TODO: get the info of Bot user in a different way
 			app.botInfo = app.slackRTM.GetInfo()
+			app.Logger.Println("Bot Info received")
 			app.slackRTM.SendMessage(app.slackRTM.NewOutgoingMessage("Hello world", "C04230HEX"))
 
 		case *slack.MessageEvent:
 			app.Logger.Printf("Message: %v\n", ev)
+		/*
 			if bridge, ok := app.bridges[ev.Channel]; ok {
 				bridge.toClient <- []byte(ev.Text)
 			}
-
+		*/
 		case *slack.PresenceChangeEvent:
 			app.Logger.Printf("Presence Change: %v\n", ev)
 
@@ -121,4 +119,16 @@ func (app *App) ReadPump() {
 			return
 		}
 	}
+}
+
+func (app *App) InitDB() {
+	db, err := gorm.Open(app.Config.DBSettings.Driver, app.Config.DBSettings.Connection)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err = db.DB().Ping(); err != nil {
+		log.Fatal(err)
+	}
+	app.db = db
+	app.Logger.Println("DB initialized")
 }

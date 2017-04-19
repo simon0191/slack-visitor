@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func (s *Server) readJSON(w http.ResponseWriter, r *http.Request, payload interface{}) bool {
+func (s *Server) readJSON(r *http.Request, payload interface{}) bool {
 	defer r.Body.Close()
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&payload)

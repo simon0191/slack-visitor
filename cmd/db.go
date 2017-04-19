@@ -5,6 +5,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
+	"github.com/simon0191/slack-visitor/model"
 	"github.com/simon0191/slack-visitor/utils"
 	"github.com/spf13/cobra"
 	"gopkg.in/gormigrate.v1"
@@ -54,7 +55,7 @@ var migrations = []*gormigrate.Migration{
 			if err := tx.AutoMigrate(&ChatState{}).Error; err != nil {
 				return err
 			}
-			for _, state := range []string{"pending", "accepted", "declined"} {
+			for _, state := range []string{model.CHAT_STATE_ACCEPTED, model.CHAT_STATE_DECLINED, model.CHAT_STATE_FINISHED, model.CHAT_STATE_PENDING} {
 				if err := tx.Create(&ChatState{ID: state}).Error; err != nil {
 					return err
 				}
@@ -71,10 +72,11 @@ var migrations = []*gormigrate.Migration{
 		Migrate: func(tx *gorm.DB) error {
 
 			type Chat struct {
-				ID          string `gorm:"primary_key;type:uuid;default:gen_random_uuid()"`
-				VisitorName string `gorm:"type:varchar(100)"`
-				Subject     string `gorm:"type:text"`
-				State       string `gorm:"primary_key;type:varchar(100)"`
+				ID          string  `gorm:"primary_key;type:uuid;default:gen_random_uuid()"`
+				VisitorName string  `gorm:"type:varchar(100)"`
+				Subject     string  `gorm:"type:text"`
+				State       string  `gorm:"type:varchar(100)"`
+				ChannelID   *string `gorm:"type:varchar(100)"`
 
 				CreatedAt time.Time
 				UpdatedAt time.Time

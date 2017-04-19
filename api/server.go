@@ -33,7 +33,8 @@ func NewServer(settings model.WebServerSettings, a *app.App) *Server {
 		webSocketUpgrader: &websocket.Upgrader{ReadBufferSize: 1024, WriteBufferSize: 1024},
 	}
 
-	s.InitChatRoutes(s.router)
+	s.InitChatRoutes()
+	s.InitSlackRoutes()
 
 	return &s
 }
@@ -43,8 +44,10 @@ func (s *Server) Run() {
 	//s.router.HandleFunc("/", s.serveHome).Methods(http.MethodGet)
 	//s.router.HandleFunc("/ws", s.serveWebSocket).Methods(http.MethodGet)
 
-	http.ListenAndServe(fmt.Sprintf(":%d", s.port), s.router)
-
+	if err := http.ListenAndServe(fmt.Sprintf(":%d", s.port), s.router); err != nil {
+		s.app.Logger.Fatal(err)
+	}
+	s.app.Logger.Printf("Server listening on port %d\n", s.port)
 }
 
 func (s *Server) serveHome(w http.ResponseWriter, r *http.Request) {

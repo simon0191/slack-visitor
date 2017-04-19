@@ -5,9 +5,9 @@ import (
 	"net/http"
 )
 
-func (s *Server) InitChatRoutes(r *mux.Router) {
-	r.HandleFunc("/api/chats", s.createChat).Methods("POST")
-	r.HandleFunc("/api/chats/{id}", s.getChat).Methods("GET")
+func (s *Server) InitChatRoutes() {
+	s.router.HandleFunc("/api/chats", s.createChat).Methods("POST")
+	s.router.HandleFunc("/api/chats/{id}", s.getChat).Methods("GET")
 }
 
 type CreateChatRequest struct {
@@ -17,7 +17,7 @@ type CreateChatRequest struct {
 
 func (s *Server) createChat(w http.ResponseWriter, r *http.Request) {
 	var payload CreateChatRequest
-	if ok := s.readJSON(w, r, &payload); !ok {
+	if ok := s.readJSON(r, &payload); !ok {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}

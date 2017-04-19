@@ -30,6 +30,6 @@ func runServerCmd(cmd *cobra.Command, args []string) {
 
 	a = app.New(config)
 	server = api.NewServer(config.WebServerSettings, a)
-
+	a.Init()
 	server.Run()
 }
