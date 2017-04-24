@@ -1,8 +1,10 @@
-hash: 97e13eedc84f59706701c30822a7b7aa92178eaa4a836ceb21b0878bcc1fdfc8
-updated: 2017-04-17T23:22:23.074517778-05:00
+hash: 025f80bf5a6d2fa88f36c8031178b2f0e96820545a3c5c9a4b29323b6bdee88c
+updated: 2017-04-22T14:53:55.230743828-05:00
 imports:
 - name: github.com/gorilla/context
   version: 08b5f424b9271eedf6f9f0ce86cb9396ed337a42
+- name: github.com/gorilla/handlers
+  version: 3a5767ca75ece5f7f1440b1d16975247f8d8b221
 - name: github.com/gorilla/mux
   version: 392c28fe23e1c45ddba891b0320b3b5df220beea
 - name: github.com/gorilla/websocket
@@ -23,9 +25,9 @@ imports:
 - name: github.com/nlopes/slack
   version: 8c25eff4976762d1a090aeae6f49174a37a1d710
 - name: github.com/spf13/cobra
-  version: b6cb3958937245a12d4d7728be080a6c758f4136
+  version: 10f6b9d7e1631a54ad07c5c0fb71c28a1abfd3c2
 - name: github.com/spf13/pflag
-  version: 9e4c21054fa135711121b557932b1887f2405d92
+  version: 2300d0f8576fe575f71aaa5b9bbe4e1b0dc2eb51
 - name: golang.org/x/net
   version: d1e1b351919c6738fdeb9893d5c998b161464f0c
   subpackages:

@@ -15,12 +15,12 @@ const (
 
 type Chat struct {
 	ID          string  `gorm:"primary_key;type:uuid;default:gen_random_uuid()" json:"id"`
-	VisitorName string  `gorm:"type:varchar(100)" json:"visitor_name"`
+	VisitorName string  `gorm:"type:varchar(100)" json:"visitorName"`
 	Subject     string  `gorm:"type:text" json:"subject"`
 	State       string  `gorm:"type:varchar(100)" json:"state"`
-	ChannelID   *string `gorm:"type:varchar(100)" json:"channel_id"`
+	ChannelID   *string `gorm:"type:varchar(100)" json:"channelId"`
 
-	CreatedAt time.Time  `json:"created_at"`
-	UpdatedAt time.Time  `json:"updated_at"`
-	DeletedAt *time.Time `json:"deleted_at"`
+	CreatedAt time.Time  `json:"createdAt"`
+	UpdatedAt time.Time  `json:"updatedAt"`
+	DeletedAt *time.Time `json:"deletedAt"`
 }

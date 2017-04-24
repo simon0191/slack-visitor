@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"github.com/simon0191/slack-visitor/app"
@@ -43,8 +44,12 @@ func (s *Server) Run() {
 
 	//s.router.HandleFunc("/", s.serveHome).Methods(http.MethodGet)
 	//s.router.HandleFunc("/ws", s.serveWebSocket).Methods(http.MethodGet)
+	allowedOrigins := handlers.AllowedOrigins([]string{"*"})
+	allowedHeaders := handlers.AllowedHeaders([]string{"Content-Type"})
+	allowedMethods := handlers.AllowedMethods([]string{"GET", "POST", "PUT"})
+	r := handlers.CORS(allowedOrigins, allowedHeaders, allowedMethods)(s.router)
 
-	if err := http.ListenAndServe(fmt.Sprintf(":%d", s.port), s.router); err != nil {
+	if err := http.ListenAndServe(fmt.Sprintf(":%d", s.port), r); err != nil {
 		s.app.Logger.Fatal(err)
 	}
 	s.app.Logger.Printf("Server listening on port %d\n", s.port)

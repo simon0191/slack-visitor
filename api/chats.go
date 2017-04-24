@@ -11,7 +11,7 @@ func (s *Server) InitChatRoutes() {
 }
 
 type CreateChatRequest struct {
-	VisitorName string `json:"visitor_name"`
+	VisitorName string `json:"visitorName"`
 	Subject     string `json:"subject"`
 }
 
