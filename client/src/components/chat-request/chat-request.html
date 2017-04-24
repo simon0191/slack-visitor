@@ -1,0 +1,21 @@
+<div class="container">
+  <div class="row">
+    <div class="col-md-6 col-md-offset-3">
+      <div class="form-wrapper">
+        <form v-on:submit.prevent="onSubmit">
+          <div class="form-group">
+            <label for="visitor-name">Name</label>
+            <input v-model="visitorName" id="visitor-name" class="form-control" type="text">
+          </div>
+
+          <div class="form-group">
+            <label for="subject">Subject</label>
+            <input v-model="subject" id="subject" class="form-control" type="text">
+          </div>
+
+          <input type="submit" class="btn btn-primary" value="Request chat">
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
