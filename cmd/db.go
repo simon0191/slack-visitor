@@ -5,11 +5,10 @@ import (
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
-	"github.com/simon0191/slack-visitor/model"
+	"github.com/simon0191/slack-visitor/cmd/migrations"
 	"github.com/simon0191/slack-visitor/utils"
 	"github.com/spf13/cobra"
 	"gopkg.in/gormigrate.v1"
-	"time"
 )
 
 func init() {
@@ -31,68 +30,6 @@ var dbMigrateCmd = &cobra.Command{
 var dbRollbackCmd = &cobra.Command{
 	Use: "rollback",
 	Run: dbRollbackCmdFunc,
-}
-
-//TODO: place each migration in a different file
-var migrations = []*gormigrate.Migration{
-	// load pgcrypto extension
-	{
-		ID: "201704160930",
-		Migrate: func(tx *gorm.DB) error {
-			return tx.Exec("CREATE EXTENSION pgcrypto;").Error
-		},
-		Rollback: func(tx *gorm.DB) error {
-			return tx.Exec("DROP EXTENSION IF EXISTS pgcrypto;").Error
-		},
-	},
-	// create chat request states table
-	{
-		ID: "201704161038",
-		Migrate: func(tx *gorm.DB) error {
-			type ChatState struct {
-				ID string `gorm:"primary_key;type:varchar(100)"`
-			}
-			if err := tx.AutoMigrate(&ChatState{}).Error; err != nil {
-				return err
-			}
-			for _, state := range []string{model.CHAT_STATE_ACCEPTED, model.CHAT_STATE_DECLINED, model.CHAT_STATE_FINISHED, model.CHAT_STATE_PENDING} {
-				if err := tx.Create(&ChatState{ID: state}).Error; err != nil {
-					return err
-				}
-			}
-			return nil
-		},
-		Rollback: func(tx *gorm.DB) error {
-			return tx.DropTable("chat_states").Error
-		},
-	},
-	// create chat requests table
-	{
-		ID: "201704161040",
-		Migrate: func(tx *gorm.DB) error {
-
-			type Chat struct {
-				ID          string  `gorm:"primary_key;type:uuid;default:gen_random_uuid()"`
-				VisitorName string  `gorm:"type:varchar(100)"`
-				Subject     string  `gorm:"type:text"`
-				State       string  `gorm:"type:varchar(100)"`
-				ChannelID   *string `gorm:"type:varchar(100)"`
-
-				CreatedAt time.Time
-				UpdatedAt time.Time
-				DeletedAt *time.Time
-			}
-
-			if err := tx.AutoMigrate(&Chat{}).Error; err != nil {
-				return err
-			}
-
-			return tx.Model(Chat{}).AddForeignKey("state", "chat_states (id)", "RESTRICT", "RESTRICT").Error
-		},
-		Rollback: func(tx *gorm.DB) error {
-			return tx.DropTable("chats").Error
-		},
-	},
 }
 
 func dbMigrateCmdFunc(cmd *cobra.Command, args []string) {
@@ -135,5 +72,5 @@ func initMigrations(cmd *cobra.Command) *gormigrate.Gormigrate {
 
 	db.LogMode(true)
 
-	return gormigrate.New(db, gormigrate.DefaultOptions, migrations)
+	return gormigrate.New(db, gormigrate.DefaultOptions, migrations.List)
 }
