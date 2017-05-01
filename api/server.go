@@ -4,34 +4,22 @@ import (
 	"fmt"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	"github.com/gorilla/websocket"
 	"github.com/simon0191/slack-visitor/app"
 	"github.com/simon0191/slack-visitor/model"
-	"log"
 	"net/http"
-	"text/template"
-)
-
-const (
-	homePath = "./public/home.html"
 )
 
 type Server struct {
-	app               *app.App
-	port              int
-	homeTemplate      *template.Template
-	router            *mux.Router
-	webSocketUpgrader *websocket.Upgrader
+	app    *app.App
+	port   int
+	router *mux.Router
 }
 
 func NewServer(settings model.WebServerSettings, a *app.App) *Server {
 	s := Server{
-		app:          a,
-		port:         settings.Port,
-		homeTemplate: template.Must(template.ParseFiles(homePath)),
-		router:       mux.NewRouter(),
-		//TODO: move away
-		webSocketUpgrader: &websocket.Upgrader{ReadBufferSize: 1024, WriteBufferSize: 1024},
+		app:    a,
+		port:   settings.Port,
+		router: mux.NewRouter(),
 	}
 
 	s.InitChatRoutes()
@@ -42,36 +30,15 @@ func NewServer(settings model.WebServerSettings, a *app.App) *Server {
 
 func (s *Server) Run() {
 
-	//s.router.HandleFunc("/", s.serveHome).Methods(http.MethodGet)
-	//s.router.HandleFunc("/ws", s.serveWebSocket).Methods(http.MethodGet)
 	allowedOrigins := handlers.AllowedOrigins([]string{"*"})
 	allowedHeaders := handlers.AllowedHeaders([]string{"Content-Type"})
 	allowedMethods := handlers.AllowedMethods([]string{"GET", "POST", "PUT"})
-	r := handlers.CORS(allowedOrigins, allowedHeaders, allowedMethods)(s.router)
+	allowCredentials := handlers.AllowCredentials()
+
+	r := handlers.CORS(allowedOrigins, allowedHeaders, allowedMethods, allowCredentials)(s.router)
 
 	if err := http.ListenAndServe(fmt.Sprintf(":%d", s.port), r); err != nil {
 		s.app.Logger.Fatal(err)
 	}
 	s.app.Logger.Printf("Server listening on port %d\n", s.port)
-}
-
-func (s *Server) serveHome(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	s.homeTemplate.Execute(w, r.Host)
-}
-
-func (s *Server) serveWebSocket(w http.ResponseWriter, r *http.Request) {
-	conn, err := s.webSocketUpgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	app.NewBridge(s.app, conn)
-	//bridge := app.NewBridge(s.app, conn)
-
-	/*bridge.app.registerClient <- bridge
-
-	go bridge.writePump()
-	bridge.readPump()
-	*/
 }

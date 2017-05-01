@@ -2,8 +2,6 @@ package: github.com/simon0191/slack-visitor
 import:
 - package: github.com/gorilla/mux
   version: ^1.3.0
-- package: github.com/gorilla/websocket
-  version: ^1.1.0
 - package: github.com/nlopes/slack
   version: 8c25eff4976762d1a090aeae6f49174a37a1d710
 - package: github.com/jinzhu/gorm
@@ -15,3 +13,5 @@ import:
 - package: github.com/spf13/cobra
 - package: github.com/gorilla/handlers
   version: ~1.2.0
+- package: github.com/googollee/go-socket.io
+- package: github.com/googollee/go-engine.io

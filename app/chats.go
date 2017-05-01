@@ -51,29 +51,13 @@ func (app *App) AcceptChat(action slack.AttachmentActionCallback) {
 		return
 	}
 
-	channel, err := app.SlackApp.CreateGroup(buildChannelName(chat.VisitorName))
-	if err != nil {
-		app.Logger.Println(err)
-		return
-	}
-
-	_, err = app.SlackApp.SetGroupPurpose(channel.ID, chat.Subject)
-	if err != nil {
-		app.Logger.Println(err)
-		return
-	}
-	_, err = app.SlackApp.SetGroupTopic(channel.ID, chat.Subject)
-	if err != nil {
-		app.Logger.Println(err)
-		return
-	}
-
-	app.SlackApp.InviteUserToGroup(channel.ID, app.botInfo.User.ID)
-	app.SlackApp.InviteUserToGroup(channel.ID, action.User.ID)
+	group := app.createSlackGroup(&chat)
+	app.SlackApp.InviteUserToGroup(group.ID, app.botInfo.User.ID)
+	app.SlackApp.InviteUserToGroup(group.ID, action.User.ID)
 	app.updateAcceptedMessage(action.Channel.ID, action.User, action.MessageTs, chat)
 
 	chat.State = model.CHAT_STATE_ACCEPTED
-	chat.ChannelID = &channel.ID
+	chat.ChannelID = &group.ID
 
 	if err := app.db.Save(&chat).Error; err != nil {
 		app.Logger.Println(err)
@@ -130,6 +114,27 @@ func (app *App) updateDeclinedMessage(channelID string, user slack.User, message
 			CallbackID: chat.ID,
 		}),
 	)
+}
+
+func (app *App) createSlackGroup(chat *model.Chat) *slack.Group {
+	group, err := app.SlackApp.CreateGroup(buildChannelName(chat.VisitorName))
+	if err != nil {
+		app.Logger.Fatal(err)
+	}
+
+	_, err = app.SlackApp.SetGroupPurpose(group.ID, chat.Subject)
+	if err != nil {
+		app.Logger.Fatal(err)
+	}
+
+	_, err = app.SlackApp.SetGroupTopic(group.ID, chat.Subject)
+	if err != nil {
+		app.Logger.Fatal(err)
+	}
+
+	app.registerSlackChannel <- group.ID
+
+	return group
 }
 
 func buildChannelName(visitorName string) string {

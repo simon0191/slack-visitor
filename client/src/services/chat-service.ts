@@ -2,7 +2,8 @@ import { Chat, Error } from '../model';
 import axios from 'axios';
 import { AxiosResponse } from 'axios';
 
-const CHAT_PENDING = 'pending';
+export const CHAT_PENDING = 'pending';
+export const CHAT_ACCEPTED = 'accepted';
 
 export class ChatService {
   public static create(visitorName: string, subject: string): PromiseLike<Chat> {
@@ -13,13 +14,13 @@ export class ChatService {
           return chat;
         })
         .catch<Error>((error) => {
-          //TODO: properly handle different type of errors
+          // TODO: properly handle different type of errors
           throw {
             id: 'chats.create.unkown_error',
             data: {
               parent: error
             }
-          }
+          };
         });
   }
 
@@ -41,16 +42,16 @@ export class ChatService {
   }
 
   public static pollChatStatus(chatId: string, pollInterval: number, timeout: number): Promise<Chat> {
-    const promise = new Promise<Chat>((resolve: (Chat) => void, reject: (any) => void) => {
+    return new Promise<Chat>((resolve: (chat: Chat) => void, reject: (error: any) => void) => {
 
       const intervalId = setInterval(() => {
         ChatService.get(chatId).then((chat: Chat) => {
-          if(chat.state != CHAT_PENDING) {
+          if (chat.state !== CHAT_PENDING) {
             resolve(chat);
             clearInterval(intervalId);
             clearTimeout(timeoutId);
           }
-        })
+        });
       }, pollInterval);
 
       const timeoutId = setTimeout(() => {
@@ -59,7 +60,5 @@ export class ChatService {
       }, timeout);
 
     });
-
-    return promise;
   }
 }

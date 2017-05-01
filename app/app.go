@@ -9,77 +9,77 @@ import (
 	"os"
 )
 
-type ClientMessage struct {
-	channel string
-	message string
-}
-
 type App struct {
 	Config   *model.Config
 	SlackApp *slack.Client
 	SlackBot *slack.Client
 	Logger   *log.Logger
-	db       *gorm.DB
 
-	bridges          map[string]*Bridge
-	registerClient   chan *Bridge
-	unregisterClient chan *Bridge
-	toSlack          chan *ClientMessage
-	botInfo          *slack.Info
-	slackRTM         *slack.RTM
+	db            *gorm.DB
+	botInfo       *slack.Info
+	slackRTM      *slack.RTM
+	slackChannels map[string]bool
+
+	SendHostMessage      chan *model.Message
+	sendVisitorMessage   chan *model.Message
+	registerSlackChannel chan string
 }
 
 func New(config *model.Config) *App {
 
 	app := &App{
-		Config:           config,
-		SlackApp:         slack.New(config.SlackSettings.AppAPIKey),
-		SlackBot:         slack.New(config.SlackSettings.BotAPIKey),
-		Logger:           log.New(os.Stdout, "slack-visitor: ", log.Lshortfile|log.LstdFlags),
-		bridges:          map[string]*Bridge{},
-		registerClient:   make(chan *Bridge),
-		unregisterClient: make(chan *Bridge),
-		toSlack:          make(chan *ClientMessage),
+		Config:        config,
+		SlackApp:      slack.New(config.SlackSettings.AppAPIKey),
+		SlackBot:      slack.New(config.SlackSettings.BotAPIKey),
+		Logger:        log.New(os.Stdout, "slack-visitor: ", log.Lshortfile|log.LstdFlags),
+		slackChannels: map[string]bool{},
+
+		SendHostMessage:      make(chan *model.Message),
+		sendVisitorMessage:   make(chan *model.Message),
+		registerSlackChannel: make(chan string),
 	}
 
 	slack.SetLogger(app.Logger)
-	app.SlackApp.SetDebug(config.DebugEnabled)
-	app.SlackBot.SetDebug(config.DebugEnabled)
+	app.SlackApp.SetDebug(false)
+	app.SlackBot.SetDebug(false)
 
 	return app
 }
 
 func (app *App) Init() {
 	app.InitDB()
+	go app.listenRegisterSlackChannel()
 	go app.ReadPump()
 }
 
-func (app *App) ListenToBridges() {
-	for {
-		select {
-		case bridge := <-app.registerClient:
+func (app *App) ListenToMessages() {
+	/*
+		for {
+			select {
+			case bridge := <-app.registerClient:
 
-			channel, err := app.SlackApp.CreateChannel(bridge.channel)
-			if err != nil {
-				app.Logger.Fatal(err)
-				break
+				channel, err := app.SlackApp.CreateChannel(bridge.channel)
+				if err != nil {
+					app.Logger.Fatal(err)
+					break
+				}
+				//TODO: avoid modification of bridge
+				bridge.channel = channel.ID
+				app.bridges[channel.ID] = bridge
+				app.SlackApp.InviteUserToChannel(channel.ID, app.botInfo.User.ID)
+
+			case bridge := <-app.unregisterClient:
+				if _, ok := app.bridges[bridge.channel]; ok {
+					delete(app.bridges, bridge.channel)
+					close(bridge.toClient)
+				}
+
+			case message := <-app.toSlack:
+
+				app.slackRTM.SendMessage(app.slackRTM.NewOutgoingMessage(message.message, message.channel))
 			}
-			//TODO: avoid modification of bridge
-			bridge.channel = channel.ID
-			app.bridges[channel.ID] = bridge
-			app.SlackApp.InviteUserToChannel(channel.ID, app.botInfo.User.ID)
-
-		case bridge := <-app.unregisterClient:
-			if _, ok := app.bridges[bridge.channel]; ok {
-				delete(app.bridges, bridge.channel)
-				close(bridge.toClient)
-			}
-
-		case message := <-app.toSlack:
-
-			app.slackRTM.SendMessage(app.slackRTM.NewOutgoingMessage(message.message, message.channel))
 		}
-	}
+	*/
 }
 
 func (app *App) ReadPump() {
@@ -108,9 +108,6 @@ func (app *App) ReadPump() {
 		case *slack.PresenceChangeEvent:
 			app.Logger.Printf("Presence Change: %v\n", ev)
 
-		case *slack.LatencyReport:
-			app.Logger.Printf("Current latency: %v\n", ev.Value)
-
 		case *slack.RTMError:
 			app.Logger.Printf("Error: %s\n", ev.Error())
 
@@ -131,4 +128,10 @@ func (app *App) InitDB() {
 	}
 	app.db = db
 	app.Logger.Println("DB initialized")
+}
+
+func (app *App) listenRegisterSlackChannel() {
+	for channelID := range app.registerSlackChannel {
+		app.slackChannels[channelID] = true
+	}
 }
