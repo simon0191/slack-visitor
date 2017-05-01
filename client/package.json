@@ -31,8 +31,10 @@
     "test:watch": "cross-env NODE_ENV=development karma start karma.unit.js --singleRun=false --auto-watch"
   },
   "dependencies": {
+    "@types/socket.io-client": "~1.4.29",
     "axios": "^0.15.3",
     "bootstrap": "~3.3.7",
+    "socket.io-client": "~1.7.3",
     "vue": "~2.2.4",
     "vue-class-component": "~5.0.0",
     "vue-property-decorator": "~4.0.0",

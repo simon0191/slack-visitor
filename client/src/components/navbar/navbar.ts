@@ -8,16 +8,11 @@ import { Logger } from '../../util/log';
 })
 export class NavbarComponent extends Vue {
 
+    public inverted: boolean = true;
     protected logger: Logger;
 
-    inverted: boolean = true; // default value
-
-    object: { default: string } = { default: 'Default object property!' }; // objects as default values don't need to be wrapped into functions
-
     links: Link[] = [
-        new Link('Home', '/'),
-        new Link('About', '/about'),
-        new Link('List', '/list')
+        new Link('Github', 'https://github.com/simon0191/slack-visitor'),
     ];
 
     @watch('$route.path')
@@ -27,6 +22,5 @@ export class NavbarComponent extends Vue {
 
     mounted() {
         if (!this.logger) this.logger = new Logger();
-        this.$nextTick(() => this.logger.info(this.object.default));
     }
 }
