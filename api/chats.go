@@ -3,6 +3,7 @@ package api
 import (
 	"github.com/googollee/go-socket.io"
 	"github.com/gorilla/mux"
+	"github.com/simon0191/slack-visitor/model"
 	"net/http"
 )
 
@@ -50,39 +51,46 @@ func (s *Server) buildSocketIOServer() (*socketio.Server, error) {
 		return nil, err
 	}
 
-	io.On("connection", func(so socketio.Socket) {
-		r := so.Request()
+	io.SetAllowRequest(func(r *http.Request) error {
 		vars := mux.Vars(r)
 		chatID := vars["id"]
-		chat, err := s.app.GetChatByID(chatID)
-		if err != nil {
-			s.app.Logger.Fatal(err)
+		if _, err := s.app.GetChatByID(chatID); err != nil {
+			return err
 		}
-		//so.Join(chatID)
-		so.Emit("welcome", chat.ID)
-		so.Emit("welcome", chat)
+
+		return nil
+	})
+
+	io.On("connection", func(so socketio.Socket) {
+		s.app.Logger.Println("on connection")
+		vars := mux.Vars(so.Request())
+		chatID := vars["id"]
+		so.Join(chatID)
 
 		so.On("visitorMessage", func(msg string) {
-			s.app.SendVisitorMessage(chat, msg)
+			s.app.Logger.Println("VisitorMessage [" + chatID + "]: " + msg)
 			so.BroadcastTo(chatID, "visitorMessage", msg)
+			go s.app.SendVisitorMessage(chatID, msg)
 		})
 
 		so.On("disconnection", func() {
+			s.app.Logger.Println("on disconnection")
 			so.BroadcastTo(chatID, "visitorDisconnected")
 		})
+
 	})
 
 	io.On("error", func(so socketio.Socket, err error) {
 		s.app.Logger.Println("error:", err)
 	})
 
-	// TODO: read messages from
-	/*
-		go func() {
-			msg := <-s.app.SendHostMessage
-			str :=
-			io.BroadcastTo(chatID, )
-		}()
-	*/
+	s.app.OnNewChat(func(chat *model.Chat) {
+		s.app.OnMessage(chat.ID, func(message *model.Message) {
+			if message.Source == model.MESSAGE_SOURCE_SLACK {
+				io.BroadcastTo(chat.ID, "hostMessage", message.Content)
+			}
+		})
+	})
+
 	return io, nil
 }

@@ -9,6 +9,10 @@ import (
 	"strings"
 )
 
+const (
+	CHANNEL_SUFFIX_LEN = 4
+)
+
 func (app *App) SendChatRequest(visitorName string, subject string) *model.Chat {
 
 	chat := model.Chat{State: "pending", VisitorName: visitorName, Subject: subject}
@@ -44,6 +48,15 @@ func (app *App) GetChatByID(id string) (*model.Chat, error) {
 	return &chat, nil
 }
 
+func (app *App) GetChatByChannel(id string) (*model.Chat, error) {
+	var chat model.Chat
+	if err := app.db.Where("channel_id = ?", id).First(&chat).Error; err != nil {
+		return nil, err
+	}
+
+	return &chat, nil
+}
+
 func (app *App) AcceptChat(action slack.AttachmentActionCallback) {
 	var chat model.Chat
 	if err := app.db.Where("id = ? AND state = ?", action.CallbackID, model.CHAT_STATE_PENDING).First(&chat).Error; err != nil {
@@ -60,8 +73,16 @@ func (app *App) AcceptChat(action slack.AttachmentActionCallback) {
 	chat.ChannelID = &group.ID
 
 	if err := app.db.Save(&chat).Error; err != nil {
-		app.Logger.Println(err)
+		app.Logger.Printf("Unable to save chat: %s\n", err)
+		return
 	}
+
+	app.registerChat(&chat)
+
+}
+
+func (app *App) registerChat(chat *model.Chat) {
+	app.registerChatCh <- chat
 }
 
 func (app *App) DeclineChat(action slack.AttachmentActionCallback) {
@@ -119,20 +140,19 @@ func (app *App) updateDeclinedMessage(channelID string, user slack.User, message
 func (app *App) createSlackGroup(chat *model.Chat) *slack.Group {
 	group, err := app.SlackApp.CreateGroup(buildChannelName(chat.VisitorName))
 	if err != nil {
-		app.Logger.Fatal(err)
+		app.Logger.Printf("Unable to create Slack channel: %s", err)
+		return nil
 	}
 
 	_, err = app.SlackApp.SetGroupPurpose(group.ID, chat.Subject)
 	if err != nil {
-		app.Logger.Fatal(err)
+		app.Logger.Printf("Unable to set channel purpose: %s", err)
 	}
 
 	_, err = app.SlackApp.SetGroupTopic(group.ID, chat.Subject)
 	if err != nil {
-		app.Logger.Fatal(err)
+		app.Logger.Printf("Unable to set channel topic: %s", err)
 	}
-
-	app.registerSlackChannel <- group.ID
 
 	return group
 }
@@ -140,11 +160,13 @@ func (app *App) createSlackGroup(chat *model.Chat) *slack.Group {
 func buildChannelName(visitorName string) string {
 	regex := regexp.MustCompile("\\W")
 	visitorName = strings.ToLower(visitorName)
-	channelName := utils.RandString(4) + "-" + regex.ReplaceAllLiteralString(visitorName, "-")
+	channelName := regex.ReplaceAllLiteralString(visitorName, "-")
 
-	if len(channelName) > model.MAX_CHANNEL_NAME_LENGHT {
-		channelName = channelName[0:model.MAX_CHANNEL_NAME_LENGHT]
+	if len(channelName) > (model.MAX_CHANNEL_NAME_LENGHT - CHANNEL_SUFFIX_LEN - 1) {
+		channelName = channelName[0:(model.MAX_CHANNEL_NAME_LENGHT - CHANNEL_SUFFIX_LEN - 1)]
 	}
+
+	channelName = channelName + "_" + utils.RandDigits(CHANNEL_SUFFIX_LEN)
 
 	return channelName
 }

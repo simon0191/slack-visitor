@@ -7,6 +7,11 @@ import (
 	"github.com/jinzhu/gorm"
 	"log"
 	"os"
+	"time"
+)
+
+const (
+	REGISTER_IGNORED_MESSAGE_WAIT = 100
 )
 
 type App struct {
@@ -15,28 +20,37 @@ type App struct {
 	SlackBot *slack.Client
 	Logger   *log.Logger
 
-	db            *gorm.DB
-	botInfo       *slack.Info
-	slackRTM      *slack.RTM
-	slackChannels map[string]bool
+	db       *gorm.DB
+	botInfo  *slack.Info
+	slackRTM *slack.RTM
 
-	SendHostMessage      chan *model.Message
-	sendVisitorMessage   chan *model.Message
-	registerSlackChannel chan string
+	messagesChs         map[string]chan *model.Message
+	messagesSubscribers map[string][]MessageSubscriber
+
+	registerChatCh     chan *model.Chat
+	newChatSubscribers []NewChatSubscriber
+
+	ignoreSlackMessages map[string]bool
 }
+
+type MessageSubscriber func(m *model.Message)
+type NewChatSubscriber func(c *model.Chat)
 
 func New(config *model.Config) *App {
 
 	app := &App{
-		Config:        config,
-		SlackApp:      slack.New(config.SlackSettings.AppAPIKey),
-		SlackBot:      slack.New(config.SlackSettings.BotAPIKey),
-		Logger:        log.New(os.Stdout, "slack-visitor: ", log.Lshortfile|log.LstdFlags),
-		slackChannels: map[string]bool{},
+		Config:   config,
+		SlackApp: slack.New(config.SlackSettings.AppAPIKey),
+		SlackBot: slack.New(config.SlackSettings.BotAPIKey),
+		Logger:   log.New(os.Stdout, "slack-visitor: ", log.Lshortfile|log.LstdFlags),
 
-		SendHostMessage:      make(chan *model.Message),
-		sendVisitorMessage:   make(chan *model.Message),
-		registerSlackChannel: make(chan string),
+		messagesChs:         map[string]chan *model.Message{},
+		messagesSubscribers: map[string][]MessageSubscriber{},
+
+		registerChatCh:     make(chan *model.Chat),
+		newChatSubscribers: []NewChatSubscriber{},
+
+		ignoreSlackMessages: map[string]bool{},
 	}
 
 	slack.SetLogger(app.Logger)
@@ -47,66 +61,34 @@ func New(config *model.Config) *App {
 }
 
 func (app *App) Init() {
-	app.InitDB()
-	go app.listenRegisterSlackChannel()
-	go app.ReadPump()
+	app.initDB()
+	go app.listenToRegisterChatCh()
+	go app.listenToSlackEvents()
 }
 
-func (app *App) ListenToMessages() {
-	/*
-		for {
-			select {
-			case bridge := <-app.registerClient:
-
-				channel, err := app.SlackApp.CreateChannel(bridge.channel)
-				if err != nil {
-					app.Logger.Fatal(err)
-					break
-				}
-				//TODO: avoid modification of bridge
-				bridge.channel = channel.ID
-				app.bridges[channel.ID] = bridge
-				app.SlackApp.InviteUserToChannel(channel.ID, app.botInfo.User.ID)
-
-			case bridge := <-app.unregisterClient:
-				if _, ok := app.bridges[bridge.channel]; ok {
-					delete(app.bridges, bridge.channel)
-					close(bridge.toClient)
-				}
-
-			case message := <-app.toSlack:
-
-				app.slackRTM.SendMessage(app.slackRTM.NewOutgoingMessage(message.message, message.channel))
-			}
-		}
-	*/
-}
-
-func (app *App) ReadPump() {
+func (app *App) listenToSlackEvents() {
 	app.slackRTM = app.SlackBot.NewRTM()
 	go app.slackRTM.ManageConnection()
 
 	for msg := range app.slackRTM.IncomingEvents {
 
 		switch ev := msg.Data.(type) {
-		case *slack.HelloEvent:
-			// Ignore hello
-
 		case *slack.ConnectedEvent:
 			//TODO: get the info of Bot user in a different way
 			app.botInfo = app.slackRTM.GetInfo()
-			app.Logger.Println("Bot Info received")
-			app.slackRTM.SendMessage(app.slackRTM.NewOutgoingMessage("Hello world", "C04230HEX"))
+			app.Logger.Printf("Bot Info received: %+v\n", app.botInfo.User)
 
 		case *slack.MessageEvent:
-			app.Logger.Printf("Message: %v\n", ev)
-		/*
-			if bridge, ok := app.bridges[ev.Channel]; ok {
-				bridge.toClient <- []byte(ev.Text)
-			}
-		*/
-		case *slack.PresenceChangeEvent:
-			app.Logger.Printf("Presence Change: %v\n", ev)
+			//TODO: better way to avoid repeated messages
+			go func() {
+				time.Sleep(REGISTER_IGNORED_MESSAGE_WAIT * time.Millisecond)
+				if _, ok := app.ignoreSlackMessages[ev.Timestamp]; ok {
+					delete(app.ignoreSlackMessages, ev.Timestamp)
+				} else {
+					app.Logger.Printf("Message: %+v\n", ev)
+					go app.SendHostMessage(ev)
+				}
+			}()
 
 		case *slack.RTMError:
 			app.Logger.Printf("Error: %s\n", ev.Error())
@@ -118,7 +100,7 @@ func (app *App) ReadPump() {
 	}
 }
 
-func (app *App) InitDB() {
+func (app *App) initDB() {
 	db, err := gorm.Open(app.Config.DBSettings.Driver, app.Config.DBSettings.Connection)
 	if err != nil {
 		log.Fatal(err)
@@ -130,8 +112,50 @@ func (app *App) InitDB() {
 	app.Logger.Println("DB initialized")
 }
 
-func (app *App) listenRegisterSlackChannel() {
-	for channelID := range app.registerSlackChannel {
-		app.slackChannels[channelID] = true
+func (app *App) listenToRegisterChatCh() {
+	for chat := range app.registerChatCh {
+		app.messagesChs[chat.ID] = make(chan *model.Message)
+		app.messagesSubscribers[chat.ID] = []MessageSubscriber{}
+
+		app.OnMessage(chat.ID, func(message *model.Message) {
+			if message.Source == model.MESSAGE_SOURCE_VISITOR {
+				_, timestamp, err := app.SlackBot.PostMessage(*message.Chat.ChannelID, message.Content, slack.PostMessageParameters{
+					Username: message.Chat.VisitorName,
+					AsUser:   false,
+				})
+
+				if err != nil {
+					app.Logger.Printf("Unable to send message: %s\n", err)
+					return
+				}
+				app.ignoreSlackMessages[timestamp] = true
+				//Clean ignoreSlackMessages
+				go func() {
+					time.Sleep(REGISTER_IGNORED_MESSAGE_WAIT * time.Millisecond * 2)
+					delete(app.ignoreSlackMessages, timestamp)
+				}()
+			}
+		})
+
+		go app.listenToMessages(chat.ID)
+		for _, notify := range app.newChatSubscribers {
+			notify(chat)
+		}
 	}
+}
+
+func (app *App) listenToMessages(chatID string) {
+	for message := range app.messagesChs[chatID] {
+		for _, notify := range app.messagesSubscribers[chatID] {
+			go notify(message)
+		}
+	}
+}
+
+func (app *App) OnMessage(chatID string, subscriber MessageSubscriber) {
+	app.messagesSubscribers[chatID] = append(app.messagesSubscribers[chatID], subscriber)
+}
+
+func (app *App) OnNewChat(subscriber NewChatSubscriber) {
+	app.newChatSubscribers = append(app.newChatSubscribers, subscriber)
 }
