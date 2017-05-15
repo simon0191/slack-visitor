@@ -1,6 +1,5 @@
 import Vue from 'vue';
 import { Component, watch } from 'vue-property-decorator';
-import { Link } from './link';
 import { Logger } from '../../util/log';
 
 @Component({
@@ -10,10 +9,6 @@ export class NavbarComponent extends Vue {
 
     public inverted: boolean = true;
     protected logger: Logger;
-
-    links: Link[] = [
-        new Link('Github', 'https://github.com/simon0191/slack-visitor'),
-    ];
 
     @watch('$route.path')
     pathChanged() {

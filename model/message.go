@@ -20,5 +20,5 @@ type Message struct {
 	UpdatedAt time.Time  `json:"updatedAt"`
 	DeletedAt *time.Time `json:"deletedAt"`
 
-	Chat Chat
+	Chat Chat `json:"chat"`
 }

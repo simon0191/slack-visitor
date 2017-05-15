@@ -1,24 +1,39 @@
-<div class="container-fluid">
-  <div class="row">
-    <div class="col-xs-12">
-      <h1>Chat {{id}}</h1>
-      <ul class="messages list-group">
-        <li class="list-group-item" v-for="message in messages">
-          {{message}}
-        </li>
-      </ul>
+<div class="chat">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-xs-8">
+        <h1>Subject: {{chat && chat.subject}}</h1>
+      </div>
+      <div class="col-xs-4">
+        <div class="pull-right">
+          <button v-on:click.prevent="onRequestTerminate" class="btn btn-danger">Terminate chat</button>
+        </div>
+      </div>
+      <div class="col-xs-12">
+        <ul class="messages list-group">
+          <li v-for="message in messages" class="list-group-item message" v-bind:class="[message.source]">
+            <strong>{{message.fromName}}:</strong> {{message.content}}
+          </li>
+        </ul>
+      </div>
     </div>
   </div>
 
-  <div class="row">
-    <div class="col-xs-12">
-      <form v-on:submit.prevent="onSubmit">
-        <div class="form-group">
-          <label for="visitor-name">Message</label>
-          <input autocomplete="off" v-model="currMessage" class="form-control" type="text">
+  <div class="form-container">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-xs-12">
+          <form v-on:submit.prevent="onSubmit">
+            <div class="form-group col-xs-11">
+              <label for="visitor-name">Message</label>
+              <input autocomplete="off" v-model="currMessage" class="form-control" type="text">
+            </div>
+            <div class="form-group col-xs-1">
+              <input :disabled="disabled" type="submit" class="btn btn-primary" value="Submit">
+            </div>
+          </form>
         </div>
-        <input type="submit" class="btn btn-primary" value="Submit">
-      </form>
+      </div>
     </div>
-  </div>
+    </div>
 </div>

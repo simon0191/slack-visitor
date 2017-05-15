@@ -32,7 +32,7 @@ func (s *Server) Run() {
 
 	allowedOrigins := handlers.AllowedOrigins([]string{"*"})
 	allowedHeaders := handlers.AllowedHeaders([]string{"Content-Type"})
-	allowedMethods := handlers.AllowedMethods([]string{"GET", "POST", "PUT"})
+	allowedMethods := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE"})
 	allowCredentials := handlers.AllowCredentials()
 
 	r := handlers.CORS(allowedOrigins, allowedHeaders, allowedMethods, allowCredentials)(s.router)

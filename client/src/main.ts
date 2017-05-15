@@ -9,7 +9,7 @@ Vue.use(VueRouter);
 
 let router = new VueRouter({
   routes: [
-    { path: '/', component: ChatRequestComponent },
+    { name: 'chats', path: '/', component: ChatRequestComponent },
     { name: 'chat', path: '/chat/:chatId', component: ChatComponent },
   ]
 });

@@ -16,6 +16,7 @@ func (s *Server) InitChatRoutes() {
 	s.router.Handle("/api/chats/{id}/ws/", ioServer)
 	s.router.HandleFunc("/api/chats", s.createChat).Methods("POST")
 	s.router.HandleFunc("/api/chats/{id}", s.getChat).Methods("GET")
+	s.router.HandleFunc("/api/chats/{id}", s.terminateChat).Methods("DELETE")
 }
 
 type CreateChatRequest struct {
@@ -40,6 +41,17 @@ func (s *Server) getChat(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
+	s.writeJSON(w, chat)
+}
+
+func (s *Server) terminateChat(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	chat, err := s.app.GetChatByID(vars["id"])
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	s.app.TerminateChat(chat, true)
 	s.writeJSON(w, chat)
 }
 
@@ -87,7 +99,7 @@ func (s *Server) buildSocketIOServer() (*socketio.Server, error) {
 	s.app.OnNewChat(func(chat *model.Chat) {
 		s.app.OnMessage(chat.ID, func(message *model.Message) {
 			if message.Source == model.MESSAGE_SOURCE_SLACK {
-				io.BroadcastTo(chat.ID, "hostMessage", message.Content)
+				io.BroadcastTo(chat.ID, "hostMessage", message)
 			}
 		})
 	})

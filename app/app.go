@@ -80,15 +80,23 @@ func (app *App) listenToSlackEvents() {
 
 		case *slack.MessageEvent:
 			//TODO: better way to avoid repeated messages
-			go func() {
-				time.Sleep(REGISTER_IGNORED_MESSAGE_WAIT * time.Millisecond)
-				if _, ok := app.ignoreSlackMessages[ev.Timestamp]; ok {
-					delete(app.ignoreSlackMessages, ev.Timestamp)
-				} else {
-					app.Logger.Printf("Message: %+v\n", ev)
-					go app.SendHostMessage(ev)
-				}
-			}()
+			if ev.SubType != "group_archive" {
+				go func() {
+					time.Sleep(REGISTER_IGNORED_MESSAGE_WAIT * time.Millisecond)
+					if _, ok := app.ignoreSlackMessages[ev.Timestamp]; ok {
+						delete(app.ignoreSlackMessages, ev.Timestamp)
+					} else {
+						app.Logger.Printf("Message: %+v\n", ev)
+						go app.SendHostMessage(ev)
+					}
+				}()
+			}
+
+		case *slack.GroupArchiveEvent:
+			chat, err := app.GetChatByChannel(ev.Channel)
+			if err == nil {
+				app.TerminateChat(chat, false)
+			}
 
 		case *slack.RTMError:
 			app.Logger.Printf("Error: %s\n", ev.Error())

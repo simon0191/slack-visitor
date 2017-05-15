@@ -109,6 +109,20 @@ func (app *App) JoinChat(action slack.AttachmentActionCallback) {
 	app.SlackApp.InviteUserToGroup(*chat.ChannelID, action.User.ID)
 }
 
+func (app *App) TerminateChat(chat *model.Chat, archiveSlackChannel bool) {
+	app.db.Model(chat).Update("state", model.CHAT_STATE_FINISHED)
+	if err := app.db.Save(chat).Error; err != nil {
+		app.Logger.Printf("Unable to end chat: %s", err)
+		return
+	}
+
+	if archiveSlackChannel {
+		if err := app.SlackApp.ArchiveGroup(*chat.ChannelID); err != nil {
+			app.Logger.Printf("Unable to archive channel: %s", err)
+		}
+	}
+}
+
 func (app *App) updateAcceptedMessage(channelID string, user slack.User, messageTs string, chat model.Chat) {
 	app.SlackBot.SendMessage(
 		channelID,

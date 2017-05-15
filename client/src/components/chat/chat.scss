@@ -1,0 +1,24 @@
+.chat {
+  .form-container {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    background-color: #e2e2e2;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+  }
+  input[type="submit"] {
+    margin-top: 25px;
+  }
+  .messages {
+    margin-bottom: 100px;
+  }
+  .message {
+    &.slack {
+      margin-left: 50px;
+    }
+    &.visitor {
+      margin-right: 50px;
+    }
+  }
+}

@@ -61,4 +61,20 @@ export class ChatService {
 
     });
   }
+
+  public static terminateChat(chatId: string): PromiseLike<Chat> {
+    return axios.delete(`${process.env.API_URL}/api/chats/${chatId}`)
+      .then<Chat|any>((response: AxiosResponse) => {
+        const chat = response.data as Chat;
+        return chat;
+      })
+      .catch((error) => {
+        throw {
+          id: 'chats.get.unkown_error',
+          data: {
+            parent: error
+          }
+        };
+      });
+  }
 }

@@ -34,12 +34,24 @@ func (app *App) SendHostMessage(slackMsg *slack.MessageEvent) {
 		return
 	}
 
+	//TODO: retrieve user info from cache
+	user, err := app.SlackApp.GetUserInfo(slackMsg.User)
+	if err != nil {
+		app.Logger.Printf("Unable to retrieve user info: %s\n", err)
+		return
+	}
+
 	message := &model.Message{
 		ChatID:   chat.ID,
 		Content:  slackMsg.Text,
 		Source:   model.MESSAGE_SOURCE_SLACK,
-		FromName: slackMsg.Username,
+		FromName: user.RealName,
 	}
+
+	if user.RealName == "" {
+		message.FromName = user.Name
+	}
+
 	if err := app.db.Create(message).Error; err != nil {
 		app.Logger.Printf("Unable to create message: %+v\n%s\n", message, err)
 		return
