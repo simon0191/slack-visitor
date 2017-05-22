@@ -11,6 +11,6 @@
   "DebugEnabled": true,
   "DBSettings": {
     "Driver": "postgres",
-    "Connection": "host=localhost user=postgres dbname=slack_visitor"
+    "Connection": "postgres://postgres@localhost:5432/slack_visitor?sslmode=disable"
   }
 }
