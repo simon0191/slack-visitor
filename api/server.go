@@ -24,6 +24,7 @@ func NewServer(settings model.WebServerSettings, a *app.App) *Server {
 
 	s.InitChatRoutes()
 	s.InitSlackRoutes()
+	s.InitClientRoutes()
 
 	return &s
 }
