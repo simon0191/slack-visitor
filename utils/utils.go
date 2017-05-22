@@ -8,6 +8,7 @@ import (
 
 	"github.com/simon0191/slack-visitor/model"
 	s "github.com/simon0191/slack-visitor/shared"
+	"strconv"
 )
 
 var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
@@ -47,6 +48,10 @@ func LoadConfig(fileName string) (*model.Config, error) {
 	err = decoder.Decode(&config)
 	if err != nil {
 		return nil, s.NewError("utils.load_config.decoding_file_error", err, s.Options{"Filename": fileName})
+	}
+
+	if port := os.Getenv("PORT"); port != "" {
+		config.WebServerSettings.Port, _ = strconv.Atoi(port)
 	}
 
 	return &config, nil
