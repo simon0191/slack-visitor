@@ -1,0 +1,22 @@
+{
+  "name": "slack-visitor",
+  "version": "1.0.0",
+  "description": "",
+  "engines": {
+    "node": "6.9.1"
+  },
+  "scripts": {
+    "postinstall": "cd client && npm install",
+    "heroku-postbuild": "cd client && npm install && npm run build_without_test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/simon0191/slack-visitor.git"
+  },
+  "author": "Simon Soriano <simon0191@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/simon0191/slack-visitor/issues"
+  },
+  "homepage": "https://github.com/simon0191/slack-visitor#readme"
+}

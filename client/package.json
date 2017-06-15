@@ -10,6 +10,7 @@
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production npm run clean && npm run test && npm run sass && npm run copy:bs && npm run build:parts && npm run clean:css && npm run process:html",
+    "build_without_test": "cross-env NODE_ENV=production npm run clean && npm run sass && npm run copy:bs && npm run build:parts && npm run clean:css && npm run process:html",
     "build:parts": "npm run sass && npm run compile",
     "ci:teamcity": "karma --env=tc start karma.coverage.js && npm run coverage:remap",
     "ci:jenkins": "karma --env=jk start karma.coverage.js && npm run coverage:remap",
@@ -38,9 +39,7 @@
     "vue": "~2.2.4",
     "vue-class-component": "~5.0.0",
     "vue-property-decorator": "~4.0.0",
-    "vue-router": "~2.3.0"
-  },
-  "devDependencies": {
+    "vue-router": "~2.3.0",
     "@types/mocha": "~2.2.40",
     "@types/node": "~7.0.8",
     "@types/sinon": "~1.16.36",
