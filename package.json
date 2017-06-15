@@ -9,6 +9,7 @@
     "postinstall": "cd client && npm install",
     "heroku-postbuild": "cd client && npm install && npm run build_without_test"
   },
+  "cacheDirectories": ["client/node_modules"],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/simon0191/slack-visitor.git"
