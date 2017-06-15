@@ -3,8 +3,7 @@ package cmd
 import (
 	"github.com/simon0191/slack-visitor/api"
 	"github.com/simon0191/slack-visitor/app"
-	"github.com/simon0191/slack-visitor/model"
-	"github.com/simon0191/slack-visitor/utils"
+	"github.com/simon0191/slack-visitor/config"
 	"github.com/spf13/cobra"
 	"math/rand"
 	"time"
@@ -12,24 +11,17 @@ import (
 
 func runServerCmd(cmd *cobra.Command, args []string) {
 	var (
-		config *model.Config
+		c      *config.Config
 		server *api.Server
 		a      *app.App
 	)
 
-	configPath, err := cmd.Flags().GetString("config")
-	if err != nil {
-		panic(err)
-	}
-	config, err = utils.LoadConfig(configPath)
-	if err != nil {
-		panic(err)
-	}
+	c = config.Load()
 
 	rand.Seed(time.Now().UnixNano())
 
-	a = app.New(config)
-	server = api.NewServer(config.WebServerSettings, a)
+	a = app.New(c)
+	server = api.NewServer(c.WebServerSettings, a)
 	a.Init()
 	server.Run()
 }

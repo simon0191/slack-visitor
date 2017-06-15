@@ -1,10 +1,10 @@
 package app
 
 import (
-	"github.com/nlopes/slack"
-	"github.com/simon0191/slack-visitor/model"
-
 	"github.com/jinzhu/gorm"
+	"github.com/nlopes/slack"
+	"github.com/simon0191/slack-visitor/config"
+	"github.com/simon0191/slack-visitor/model"
 	"log"
 	"os"
 	"time"
@@ -15,7 +15,7 @@ const (
 )
 
 type App struct {
-	Config   *model.Config
+	Config   *config.Config
 	SlackApp *slack.Client
 	SlackBot *slack.Client
 	Logger   *log.Logger
@@ -36,7 +36,7 @@ type App struct {
 type MessageSubscriber func(m *model.Message)
 type NewChatSubscriber func(c *model.Chat)
 
-func New(config *model.Config) *App {
+func New(config *config.Config) *App {
 
 	app := &App{
 		Config:   config,

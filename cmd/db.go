@@ -6,7 +6,7 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/simon0191/slack-visitor/cmd/migrations"
-	"github.com/simon0191/slack-visitor/utils"
+	"github.com/simon0191/slack-visitor/config"
 	"github.com/spf13/cobra"
 	"gopkg.in/gormigrate.v1"
 )
@@ -52,15 +52,8 @@ func dbRollbackCmdFunc(cmd *cobra.Command, args []string) {
 }
 
 func initMigrations(cmd *cobra.Command) *gormigrate.Gormigrate {
-	configPath, err := cmd.Flags().GetString("config")
-	if err != nil {
-		log.Fatal(err)
-	}
 
-	config, err := utils.LoadConfig(configPath)
-	if err != nil {
-		log.Fatal(err)
-	}
+	config := config.Load()
 
 	db, err := gorm.Open(config.DBSettings.Driver, config.DBSettings.Connection)
 	if err != nil {

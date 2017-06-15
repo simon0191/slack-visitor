@@ -1,3 +1,4 @@
 config/config.json
 vendor/*
 !vendor/.keep
+.env

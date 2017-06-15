@@ -5,7 +5,7 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/simon0191/slack-visitor/app"
-	"github.com/simon0191/slack-visitor/model"
+	"github.com/simon0191/slack-visitor/config"
 	"net/http"
 )
 
@@ -15,7 +15,7 @@ type Server struct {
 	router *mux.Router
 }
 
-func NewServer(settings model.WebServerSettings, a *app.App) *Server {
+func NewServer(settings config.WebServerSettings, a *app.App) *Server {
 	s := Server{
 		app:    a,
 		port:   settings.Port,

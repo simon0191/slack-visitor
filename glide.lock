@@ -1,5 +1,5 @@
-hash: 6f56a5fcde0d0568e3cca44bd82989073c81571dd103d96b53e9caa56648f23d
-updated: 2017-04-28T21:02:59.639950562-05:00
+hash: d8ce523e49eaaf8a3e68fd46819f92a60a9dff08f3ea207d452983e6045af409
+updated: 2017-06-14T23:47:07.465819086-05:00
 imports:
 - name: github.com/googollee/go-engine.io
   version: 80ae0e43aca17b4c5a6834999d0f2eaa16b9afda
@@ -10,13 +10,13 @@ imports:
   - transport
   - websocket
 - name: github.com/googollee/go-socket.io
-  version: e9f0a9b7a61267e1476f9f0a0429337813c39edd
+  version: 5447e71f36d394766bf855d5714a487596809f0d
 - name: github.com/gorilla/context
   version: 08b5f424b9271eedf6f9f0ce86cb9396ed337a42
 - name: github.com/gorilla/handlers
-  version: 3a5767ca75ece5f7f1440b1d16975247f8d8b221
+  version: a4043c62cc2329bacda331d33fc908ab11ef0ec3
 - name: github.com/gorilla/mux
-  version: 392c28fe23e1c45ddba891b0320b3b5df220beea
+  version: bcd8bc72b08df0f70df986b97f95590779502d31
 - name: github.com/gorilla/websocket
   version: 3ab3a8b8831546bd18fd182c20687ca853b2bb13
 - name: github.com/inconshreveable/mousetrap
@@ -27,6 +27,8 @@ imports:
   - dialects/postgres
 - name: github.com/jinzhu/inflection
   version: 1c35d901db3da928c72a72d8458480cc9ade058f
+- name: github.com/joho/godotenv
+  version: 726cc8b906e3d31c70a9671c90a13716a8d3f50d
 - name: github.com/lib/pq
   version: 2704adc878c21e1329f46f6e56a1c387d788ff94
   subpackages:
@@ -35,13 +37,13 @@ imports:
 - name: github.com/nlopes/slack
   version: 8c25eff4976762d1a090aeae6f49174a37a1d710
 - name: github.com/spf13/cobra
-  version: 7b1b6e8dc027253d45fc029bc269d1c019f83a34
+  version: ca57f0f5dba473a8a58765d16d7e811fb8027add
 - name: github.com/spf13/pflag
-  version: f1d95a35e132e8a1868023a08932b14f0b8b8fcb
+  version: e57e3eeb33f795204c1ca35f56c44f83227c6e66
 - name: golang.org/x/net
   version: d1e1b351919c6738fdeb9893d5c998b161464f0c
   subpackages:
   - websocket
 - name: gopkg.in/gormigrate.v1
-  version: 8d65e80265237e0c9ccc7fca4771de6d2939576c
+  version: fd470587e2319d8db9fd35cfba9424f6d45175f8
 testImports: []

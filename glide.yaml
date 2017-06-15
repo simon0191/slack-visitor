@@ -15,3 +15,5 @@ import:
   version: ~1.2.0
 - package: github.com/googollee/go-socket.io
 - package: github.com/googollee/go-engine.io
+- package: github.com/joho/godotenv
+  version: ^1.1.0
