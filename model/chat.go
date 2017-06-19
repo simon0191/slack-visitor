@@ -19,6 +19,7 @@ type Chat struct {
 	Subject     string  `gorm:"type:text" json:"subject"`
 	State       string  `gorm:"type:varchar(100)" json:"state"`
 	ChannelID   *string `gorm:"type:varchar(100)" json:"channelId"`
+	MessageTs   *string `gorm:"type:varchar(100)" json:"messageTs"`
 
 	CreatedAt time.Time  `json:"createdAt"`
 	UpdatedAt time.Time  `json:"updatedAt"`

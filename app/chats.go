@@ -35,7 +35,11 @@ func (app *App) SendChatRequest(visitorName string, subject string) *model.Chat 
 		},
 	}
 
-	app.SlackBot.PostMessage(app.Config.VisitorChannelID, text, params)
+	_, messageTs, _ := app.SlackBot.PostMessage(app.Config.VisitorChannelID, text, params)
+	chat.MessageTs = &messageTs
+	if err := app.db.Save(&chat).Error; err != nil {
+		app.Logger.Printf("Unable to save chat: %s\n", err)
+	}
 	return &chat
 }
 
@@ -121,6 +125,9 @@ func (app *App) TerminateChat(chat *model.Chat, archiveSlackChannel bool) {
 			app.Logger.Printf("Unable to archive channel: %s", err)
 		}
 	}
+
+	app.updateClosedMessage(app.Config.VisitorChannelID, *chat)
+	//TODO: Send chat termination command to client
 }
 
 func (app *App) updateAcceptedMessage(channelID string, user slack.User, messageTs string, chat model.Chat) {
@@ -146,6 +153,19 @@ func (app *App) updateDeclinedMessage(channelID string, user slack.User, message
 		slack.MsgOptionUpdate(messageTs),
 		slack.MsgOptionAttachments(slack.Attachment{
 			Text:       fmt.Sprintf("@%s has declined this chat request", user.Name),
+			CallbackID: chat.ID,
+		}),
+	)
+}
+
+func (app *App) updateClosedMessage(channelID string, chat model.Chat) {
+
+	app.SlackBot.SendMessage(
+		channelID,
+		slack.MsgOptionText(fmt.Sprintf("Chat terminated:\n*%s* wants to talk about _\"%s\"_", chat.VisitorName, chat.Subject), false),
+		slack.MsgOptionUpdate(*chat.MessageTs),
+		slack.MsgOptionAttachments(slack.Attachment{
+			Text:       fmt.Sprintf("this chat has been terminated"),
 			CallbackID: chat.ID,
 		}),
 	)
