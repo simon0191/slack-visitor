@@ -1,7 +1,7 @@
 {
   "name": "slack-visitor",
   "version": "1.0.0",
-  "description": "",
+  "description": "Slack app that lets your Slack team chat with people who are not part of your Slack team via a web client.",
   "engines": {
     "node": "6.9.1"
   },
