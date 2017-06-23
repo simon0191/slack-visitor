@@ -62,6 +62,12 @@ After checking out the repo, run `glide install && npm install` to install depen
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/simon0191/slack-visitor.
 
+## Supported by:
+
+Slack Visitor wants to say ¡Thank you Toptal! for supporting this project
+
+[![](https://www.toptal.com/blackfish-assets/public/base/images/logo/big_1ef32d.png)](https://www.toptal.com)
+
 ## License
 
 MIT License
